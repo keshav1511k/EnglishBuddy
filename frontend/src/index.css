@@ -4,7 +4,33 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at top left, rgba(196, 106, 47, 0.15), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(139, 65, 33, 0.12), transparent 25%),
+    linear-gradient(180deg, #f8f4ec 0%, #f1eadf 100%);
+  color: #1f2430;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
 }

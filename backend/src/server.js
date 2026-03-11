@@ -1,16 +1,22 @@
-import express from "express";
-import cors from "cors";
+import dotenv from "dotenv";
+import { createApp } from "./app.js";
+import { getStoreProviderName, initializeStore } from "./store.js";
 
-const app = express();
+dotenv.config({ quiet: true });
 
-app.use(cors());
-app.use(express.json());
+const app = createApp();
+const PORT = Number(process.env.PORT) || 8080;
 
-app.get("/", (req, res) => {
-  res.send("EnglishBuddy Backend Running 🚀");
-});
+try {
+  await initializeStore();
 
-const PORT = 8080;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(
+      `EnglishBuddy backend listening on port ${PORT} using ${getStoreProviderName()} storage`,
+    );
+  });
+} catch (error) {
+  console.error("Failed to start EnglishBuddy backend.");
+  console.error(error);
+  process.exit(1);
+}
