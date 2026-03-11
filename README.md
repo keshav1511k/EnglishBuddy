@@ -49,6 +49,17 @@ from a protected dashboard.
 - To point the frontend somewhere else, set `VITE_API_URL`.
 - Use [.env.example](/Users/keshav/Desktop/EnglishBuddy/.env.example) as the starting template.
 
+## Deploy on Render
+
+This repo is set up to deploy as one Render web service using [render.yaml](/Users/keshav/Desktop/EnglishBuddy/render.yaml).
+
+1. Push this repo to GitHub with the latest changes.
+2. In Render, create a new Blueprint and select this repository.
+3. Render will use the build command from `render.yaml` to build the frontend and run the backend.
+4. For persistent production data, set `MONGODB_URI` in Render before the first real use.
+
+The deployed app serves both the React frontend and the API from the same domain.
+
 ## Verification
 
 - Frontend lint: `cd frontend && npm run lint`

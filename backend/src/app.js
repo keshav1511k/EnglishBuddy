@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import path from "node:path";
+import { existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import {
   createPracticeSession,
   createUser,
@@ -10,6 +13,12 @@ import {
   loginUser,
   logoutUser,
 } from "./store.js";
+
+const fileName = fileURLToPath(import.meta.url);
+const directoryName = path.dirname(fileName);
+const frontendDistPath = path.resolve(directoryName, "../../frontend/dist");
+const frontendIndexPath = path.join(frontendDistPath, "index.html");
+const hasBuiltFrontend = existsSync(frontendIndexPath);
 
 function parseWeeklyGoal(value) {
   const parsed = Number(value);
@@ -65,10 +74,6 @@ export function createApp() {
 
   app.use(cors());
   app.use(express.json());
-
-  app.get("/", (request, response) => {
-    response.send("EnglishBuddy Backend Running");
-  });
 
   app.get("/api/health", (request, response) => {
     response.json({
@@ -169,6 +174,23 @@ export function createApp() {
 
     response.status(201).json({ session });
   });
+
+  if (hasBuiltFrontend) {
+    app.use(express.static(frontendDistPath));
+
+    app.use((request, response, next) => {
+      if (request.method !== "GET" || request.path.startsWith("/api")) {
+        next();
+        return;
+      }
+
+      response.sendFile(frontendIndexPath);
+    });
+  } else {
+    app.get("/", (request, response) => {
+      response.send("EnglishBuddy Backend Running");
+    });
+  }
 
   app.use((error, request, response, next) => {
     if (response.headersSent) {
