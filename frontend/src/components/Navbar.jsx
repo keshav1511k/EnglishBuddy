@@ -8,7 +8,7 @@ export default function Navbar({ session, onLogout }) {
   return (
     <header className="site-header">
       <div className="brand-lockup">
-        <Link className="brand-mark" to={session ? "/dashboard" : "/"}>
+        <Link className="brand-mark" to="/">
           EnglishBuddy
         </Link>
         <p className="brand-tagline">Practice speaking with structure, not guesswork.</p>
@@ -17,6 +17,15 @@ export default function Navbar({ session, onLogout }) {
       <nav className="site-nav">
         {session ? (
           <>
+            <Link className={`nav-link ${isActive("/")}`} to="/">
+              Home
+            </Link>
+            <Link className={`nav-link ${isActive("/dashboard")}`} to="/dashboard">
+              Dashboard
+            </Link>
+            <Link className={`nav-link ${isActive("/practice")}`} to="/practice">
+              Live AI
+            </Link>
             <span className="user-chip">
               {session.user.name}
               <small>{session.user.level}</small>
@@ -28,6 +37,9 @@ export default function Navbar({ session, onLogout }) {
         ) : (
           <>
             <Link className={`nav-link ${isActive("/")}`} to="/">
+              Home
+            </Link>
+            <Link className={`nav-link ${isActive("/login")}`} to="/login">
               Log in
             </Link>
             <Link className={`nav-link ${isActive("/register")}`} to="/register">

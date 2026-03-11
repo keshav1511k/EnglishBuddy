@@ -11,3 +11,7 @@ services:
         value: 22
       - key: PORT
         value: 10000
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_API_KEY
+        sync: false

@@ -98,3 +98,17 @@ export function createSession(formData) {
     body: formData,
   });
 }
+
+export function requestPracticeTurn(formData) {
+  return request("/ai/practice-turn", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export function requestPracticeSummary(formData) {
+  return request("/ai/practice-summary", {
+    method: "POST",
+    body: formData,
+  });
+}

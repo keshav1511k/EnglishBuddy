@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   clearSession,
   createSession,
@@ -150,6 +151,9 @@ export default function Dashboard({ onLogout }) {
         <div className="progress-callout">
           <strong>{summary.weeklyGoalProgress}%</strong>
           <span>{`${summary.weeklyMinutes} / ${summary.weeklyGoalMinutes} weekly minutes completed`}</span>
+          <Link className="progress-link" to="/practice">
+            Open live AI practice
+          </Link>
         </div>
       </section>
 

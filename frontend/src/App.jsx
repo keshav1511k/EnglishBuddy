@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Practice from "./pages/Practice";
 import Navbar from "./components/Navbar";
 import {
   clearSession,
@@ -22,7 +24,7 @@ function GuestRoute({ session, children }) {
 
 function ProtectedRoute({ session, children }) {
   if (!session) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -53,8 +55,9 @@ export default function App() {
     <BrowserRouter>
       <Navbar session={session} onLogout={handleLogout} />
       <Routes>
+        <Route path="/" element={<Home session={session} />} />
         <Route
-          path="/"
+          path="/login"
           element={
             <GuestRoute session={session}>
               <Login onLogin={handleAuthenticated} />
@@ -74,6 +77,14 @@ export default function App() {
           element={
             <ProtectedRoute session={session}>
               <Dashboard onLogout={handleLogout} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/practice"
+          element={
+            <ProtectedRoute session={session}>
+              <Practice session={session} />
             </ProtectedRoute>
           }
         />

@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { createPracticeSummary, createPracticeTurn } from "./ai.js";
 import {
   createPracticeSession,
   createUser,
@@ -33,6 +34,11 @@ function parseScore(value) {
 function parseDuration(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 5 && parsed <= 180 ? parsed : NaN;
+}
+
+function parseConversationDuration(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1 && parsed <= 180 ? parsed : NaN;
 }
 
 function getAuthToken(request) {
@@ -173,6 +179,65 @@ export function createApp() {
     });
 
     response.status(201).json({ session });
+  });
+
+  app.post("/api/ai/practice-turn", requireAuth, async (request, response) => {
+    const {
+      topic,
+      focusArea = "fluency",
+      conversationMode = "Conversation",
+      history = [],
+      userMessage,
+    } = request.body ?? {};
+
+    if (!topic?.trim() || !userMessage?.trim()) {
+      response.status(400).json({ message: "Topic and user message are required." });
+      return;
+    }
+
+    const aiTurn = await createPracticeTurn({
+      user: request.user,
+      topic,
+      focusArea: String(focusArea),
+      conversationMode: String(conversationMode),
+      history,
+      userMessage,
+    });
+
+    response.json(aiTurn);
+  });
+
+  app.post("/api/ai/practice-summary", requireAuth, async (request, response) => {
+    const {
+      topic,
+      focusArea = "fluency",
+      conversationMode = "Conversation",
+      history = [],
+      durationMinutes,
+    } = request.body ?? {};
+
+    if (!topic?.trim()) {
+      response.status(400).json({ message: "Topic is required." });
+      return;
+    }
+
+    const parsedDuration = parseConversationDuration(durationMinutes);
+
+    if (!Number.isFinite(parsedDuration)) {
+      response.status(400).json({ message: "Duration must be between 1 and 180 minutes." });
+      return;
+    }
+
+    const summary = await createPracticeSummary({
+      user: request.user,
+      topic,
+      focusArea: String(focusArea),
+      conversationMode: String(conversationMode),
+      history,
+      durationMinutes: parsedDuration,
+    });
+
+    response.json({ summary });
   });
 
   if (hasBuiltFrontend) {

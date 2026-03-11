@@ -1,12 +1,14 @@
 # EnglishBuddy
 
 EnglishBuddy is a full-stack speaking practice tracker for English learners. Users can
-register, set a weekly speaking goal, log practice sessions, and review their progress
-from a protected dashboard.
+register, set a weekly speaking goal, practice live with an AI speaking partner, log
+practice sessions, and review their progress from a protected dashboard.
 
 ## What is included
 
 - User registration and login
+- Public home page with dashboard and live-practice navigation
+- Live AI speaking practice with instant feedback
 - Local session persistence in the browser
 - Protected dashboard with weekly progress and streak tracking
 - Practice session logging with topic, mode, duration, score, and notes
@@ -18,6 +20,7 @@ from a protected dashboard.
 - React Router
 - Node.js
 - Express
+- OpenAI Responses API
 - MongoDB + Mongoose
 - Local JSON fallback for development and smoke tests
 
@@ -45,7 +48,9 @@ from a protected dashboard.
 - If `MONGODB_URI` is set, the backend uses MongoDB.
 - If `MONGODB_URI` is set but unreachable, the backend fails fast on startup.
 - If `MONGODB_URI` is not set, the backend falls back to a local JSON file at `backend/data/store.json`.
-- Frontend API base URL defaults to `http://localhost:8080/api`.
+- AI practice requires `OPENAI_API_KEY`.
+- `OPENAI_MODEL` defaults to `gpt-4o-mini`.
+- Frontend API base URL defaults to `/api` in production.
 - To point the frontend somewhere else, set `VITE_API_URL`.
 - Use [.env.example](/Users/keshav/Desktop/EnglishBuddy/.env.example) as the starting template.
 
@@ -56,9 +61,16 @@ This repo is set up to deploy as one Render web service using [render.yaml](/Use
 1. Push this repo to GitHub with the latest changes.
 2. In Render, create a new Blueprint and select this repository.
 3. Render will use the build command from `render.yaml` to build the frontend and run the backend.
-4. For persistent production data, set `MONGODB_URI` in Render before the first real use.
+4. Set `OPENAI_API_KEY` in Render for the live AI practice feature.
+5. For persistent production data, set `MONGODB_URI` in Render before the first real use.
 
 The deployed app serves both the React frontend and the API from the same domain.
+
+## Voice support
+
+- Voice input uses the browser Speech Recognition API and works best in Chrome or Edge.
+- AI coaching is based on the recognized transcript, so it evaluates fluency, grammar,
+  vocabulary, and clarity rather than raw pronunciation audio.
 
 ## Verification
 
