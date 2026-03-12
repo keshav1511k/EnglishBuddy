@@ -14,10 +14,10 @@ body,
 body {
   min-width: 320px;
   background:
-    radial-gradient(circle at top left, rgba(196, 106, 47, 0.15), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(139, 65, 33, 0.12), transparent 25%),
-    linear-gradient(180deg, #f8f4ec 0%, #f1eadf 100%);
-  color: #1f2430;
+    radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 25%),
+    linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+  color: #0f172a;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
