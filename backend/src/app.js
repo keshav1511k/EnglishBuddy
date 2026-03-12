@@ -3,7 +3,11 @@ import cors from "cors";
 import path from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { createPracticeSummary, createPracticeTurn } from "./ai.js";
+import {
+  createPracticeSummary,
+  createPracticeTurn,
+  isAiPracticeConfigured,
+} from "./ai.js";
 import {
   createPracticeSession,
   createUser,
@@ -85,6 +89,9 @@ export function createApp() {
     response.json({
       status: "ok",
       storage: getStoreProviderName(),
+      ai: {
+        configured: isAiPracticeConfigured(),
+      },
       timestamp: new Date().toISOString(),
     });
   });
@@ -265,6 +272,7 @@ export function createApp() {
 
     response.status(error.statusCode || 500).json({
       message: error.message || "Something went wrong.",
+      code: error.code,
     });
   });
 

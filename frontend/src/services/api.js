@@ -1,6 +1,14 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const SESSION_STORAGE_KEY = "englishbuddy-session";
 
+function getErrorMessage(path, payload) {
+  if (payload?.code === "AI_NOT_CONFIGURED" && path.startsWith("/ai/")) {
+    return "Live AI is not enabled on this site yet. Add the OpenAI API key in Render to turn it on.";
+  }
+
+  return payload?.message || "Request failed.";
+}
+
 export function loadSession() {
   if (typeof window === "undefined") {
     return null;
@@ -56,8 +64,9 @@ async function request(path, options = {}) {
   }
 
   if (!response.ok) {
-    const error = new Error(payload?.message || "Request failed.");
+    const error = new Error(getErrorMessage(path, payload));
     error.status = response.status;
+    error.code = payload?.code;
     throw error;
   }
 
@@ -90,6 +99,10 @@ export function fetchDashboard() {
 
 export function fetchSessions() {
   return request("/me/sessions");
+}
+
+export function fetchHealth() {
+  return request("/health");
 }
 
 export function createSession(formData) {

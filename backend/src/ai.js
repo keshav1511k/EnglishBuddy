@@ -2,6 +2,10 @@ import OpenAI from "openai";
 
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
+export function isAiPracticeConfigured() {
+  return Boolean(process.env.OPENAI_API_KEY?.trim());
+}
+
 const practiceTurnSchema = {
   type: "object",
   additionalProperties: false,
@@ -65,15 +69,14 @@ const practiceSummarySchema = {
 };
 
 function getClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    const error = new Error("AI practice is not configured yet. Add OPENAI_API_KEY.");
+  if (!isAiPracticeConfigured()) {
+    const error = new Error("Live AI is not enabled on this deployment yet.");
     error.statusCode = 503;
+    error.code = "AI_NOT_CONFIGURED";
     throw error;
   }
 
-  return new OpenAI({ apiKey });
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
 function sanitizeHistory(history) {

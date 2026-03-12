@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   createSession,
+  fetchHealth,
   requestPracticeSummary,
   requestPracticeTurn,
 } from "../services/api";
@@ -27,6 +28,9 @@ const conversationModes = [
   "Presentation",
 ];
 
+const aiUnavailableMessage =
+  "Live AI is not enabled on this site yet. Add the OpenAI API key in Render to turn it on.";
+
 function createMessage(role, content) {
   return {
     id: `${role}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -43,7 +47,21 @@ function formatDuration(startedAt) {
   return Math.max(1, Math.round((Date.now() - startedAt) / 60000));
 }
 
-function getConversationStatus({ isListening, isReplying, isSummarizing }) {
+function getConversationStatus({
+  isAiConfigured,
+  isCheckingAi,
+  isListening,
+  isReplying,
+  isSummarizing,
+}) {
+  if (isCheckingAi) {
+    return "Checking AI setup";
+  }
+
+  if (!isAiConfigured) {
+    return "AI setup needed";
+  }
+
   if (isListening) {
     return "Listening to you";
   }
@@ -81,6 +99,8 @@ export default function Practice({ session }) {
   const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(true);
   const [sessionStartedAt, setSessionStartedAt] = useState(null);
   const [savedSessionId, setSavedSessionId] = useState(null);
+  const [isAiConfigured, setIsAiConfigured] = useState(true);
+  const [isCheckingAi, setIsCheckingAi] = useState(true);
 
   const speechRecognition = useMemo(() => {
     if (typeof window === "undefined") {
@@ -113,10 +133,23 @@ export default function Practice({ session }) {
     window.speechSynthesis.speak(utterance);
   };
 
+  const getReadableError = (requestError) => {
+    if (requestError?.code === "AI_NOT_CONFIGURED") {
+      return aiUnavailableMessage;
+    }
+
+    return requestError?.message || "Something went wrong. Please try again.";
+  };
+
   const handleSendMessage = async (rawMessage) => {
     const cleanMessage = rawMessage.trim();
 
     if (!cleanMessage || isReplying || isSummarizing) {
+      return;
+    }
+
+    if (!isAiConfigured) {
+      setError(aiUnavailableMessage);
       return;
     }
 
@@ -152,13 +185,41 @@ export default function Practice({ session }) {
       setLastFeedback(response.feedback);
       speakReply(response.assistantReply);
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getReadableError(requestError));
     } finally {
       setIsReplying(false);
     }
   };
 
   sendMessageRef.current = handleSendMessage;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadHealth = async () => {
+      try {
+        const response = await fetchHealth();
+
+        if (!isCancelled) {
+          setIsAiConfigured(response?.ai?.configured !== false);
+        }
+      } catch {
+        if (!isCancelled) {
+          setIsAiConfigured(true);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsCheckingAi(false);
+        }
+      }
+    };
+
+    void loadHealth();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!speechRecognition) {
@@ -232,6 +293,11 @@ export default function Practice({ session }) {
   }, [speechSynthesisAvailable]);
 
   const startListening = () => {
+    if (!isAiConfigured) {
+      setError(aiUnavailableMessage);
+      return;
+    }
+
     if (!recognitionRef.current) {
       setError("Speech recognition is not supported in this browser. Try Chrome or Edge.");
       return;
@@ -283,7 +349,7 @@ export default function Practice({ session }) {
 
       setSummary(response.summary);
     } catch (requestError) {
-      setError(requestError.message);
+      setError(getReadableError(requestError));
     } finally {
       setIsSummarizing(false);
     }
@@ -334,6 +400,8 @@ export default function Practice({ session }) {
   };
 
   const conversationStatus = getConversationStatus({
+    isAiConfigured,
+    isCheckingAi,
     isListening,
     isReplying,
     isSummarizing,
@@ -358,7 +426,9 @@ export default function Practice({ session }) {
             className="primary-button"
             type="button"
             onClick={startListening}
-            disabled={isListening || isReplying || isSummarizing}
+            disabled={
+              isCheckingAi || !isAiConfigured || isListening || isReplying || isSummarizing
+            }
           >
             {isListening ? "Listening..." : "Start voice conversation"}
           </button>
@@ -437,6 +507,13 @@ export default function Practice({ session }) {
                 typing your answers below.
               </div>
             ) : null}
+
+            {!isCheckingAi && !isAiConfigured ? (
+              <div className="empty-card">
+                Live AI is not enabled on this deployment yet. Add the OpenAI API key
+                in Render, then redeploy to turn on voice practice and feedback.
+              </div>
+            ) : null}
           </div>
         </article>
 
@@ -479,7 +556,13 @@ export default function Practice({ session }) {
             <button
               className="primary-button"
               type="submit"
-              disabled={isReplying || isSummarizing || !manualMessage.trim()}
+              disabled={
+                isCheckingAi ||
+                !isAiConfigured ||
+                isReplying ||
+                isSummarizing ||
+                !manualMessage.trim()
+              }
             >
               {isReplying ? "AI is replying..." : "Send answer"}
             </button>
@@ -527,7 +610,7 @@ export default function Practice({ session }) {
         <article className="panel summary-panel">
           <div className="section-heading">
             <span className="eyebrow">Session review</span>
-            <h2>Wrap up and save</h2>
+            <h2>End session and save</h2>
           </div>
 
           <div className="hero-actions">
@@ -535,7 +618,12 @@ export default function Practice({ session }) {
               className="primary-button"
               type="button"
               onClick={handleSummarize}
-              disabled={!conversationHistory.length || isSummarizing}
+              disabled={
+                isCheckingAi ||
+                !isAiConfigured ||
+                !conversationHistory.length ||
+                isSummarizing
+              }
             >
               {isSummarizing
                 ? "Creating summary..."
@@ -591,8 +679,8 @@ export default function Practice({ session }) {
             </div>
           ) : (
             <div className="empty-card">
-              Finish a few turns, then generate a full session review and save it to
-              your dashboard.
+              Finish a few turns, then generate your full session review and save it
+              to the dashboard.
             </div>
           )}
 
