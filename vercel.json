@@ -2,11 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm run install:all",
   "buildCommand": "npm run build:frontend",
-  "functions": {
-    "server.js": {
-      "maxDuration": 60
-    }
-  },
   "rewrites": [
     {
       "source": "/((?!api(?:/|$)|assets(?:/|$)|vite\\.svg$).*)",
