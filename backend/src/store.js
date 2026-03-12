@@ -4,12 +4,33 @@ import * as mongoStore from "./store.mongo.js";
 let providerPromise;
 let activeProviderKey;
 
+function isVercelRuntime() {
+  return process.env.VERCEL === "1" || Boolean(process.env.VERCEL_ENV);
+}
+
 function resolveProviderKey() {
-  return process.env.MONGODB_URI ? "mongodb" : "local-json";
+  if (process.env.MONGODB_URI) {
+    return "mongodb";
+  }
+
+  return isVercelRuntime() ? "vercel-requires-mongodb" : "local-json";
 }
 
 function getProviderModule(providerKey) {
-  return providerKey === "mongodb" ? mongoStore : localStore;
+  if (providerKey === "mongodb") {
+    return mongoStore;
+  }
+
+  if (providerKey === "local-json") {
+    return localStore;
+  }
+
+  const error = new Error(
+    "MONGODB_URI is required on Vercel because Vercel Functions do not provide durable writable storage for the local JSON store.",
+  );
+  error.statusCode = 503;
+  error.code = "MONGODB_REQUIRED_ON_VERCEL";
+  throw error;
 }
 
 async function getProvider() {

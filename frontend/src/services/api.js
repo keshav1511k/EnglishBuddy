@@ -6,6 +6,10 @@ function getErrorMessage(path, payload) {
     return "Live AI is not enabled on this site yet. Add the OpenAI API key in Render to turn it on.";
   }
 
+  if (payload?.code === "MONGODB_REQUIRED_ON_VERCEL") {
+    return "This Vercel deployment still needs MONGODB_URI. Add MongoDB in the Vercel environment settings and redeploy.";
+  }
+
   return payload?.message || "Request failed.";
 }
 

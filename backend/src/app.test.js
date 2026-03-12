@@ -6,6 +6,7 @@ import {
   createPracticeSession,
   createUser,
   getDashboardForUser,
+  getStoreProviderName,
   getSessionsForUser,
   getUserByToken,
   loginUser,
@@ -16,9 +17,13 @@ async function run() {
   const tempDirectory = await mkdtemp(path.join(os.tmpdir(), "englishbuddy-"));
   const storePath = path.join(tempDirectory, "store.json");
   delete process.env.MONGODB_URI;
+  delete process.env.VERCEL;
+  delete process.env.VERCEL_ENV;
   process.env.ENGLISH_BUDDY_STORE_PATH = storePath;
 
   try {
+    assert.equal(getStoreProviderName(), "local-json");
+
     const registration = await createUser({
       name: "Keshav",
       email: "keshav@example.com",
@@ -58,10 +63,16 @@ async function run() {
     const loggedOutUser = await getUserByToken(login.token);
     assert.equal(loggedOutUser, null);
 
+    process.env.VERCEL = "1";
+    delete process.env.ENGLISH_BUDDY_STORE_PATH;
+    assert.equal(getStoreProviderName(), "vercel-requires-mongodb");
+
     console.log("Backend smoke test passed.");
   } finally {
     delete process.env.MONGODB_URI;
     delete process.env.ENGLISH_BUDDY_STORE_PATH;
+    delete process.env.VERCEL;
+    delete process.env.VERCEL_ENV;
     await rm(tempDirectory, { recursive: true, force: true });
   }
 }

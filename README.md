@@ -66,6 +66,37 @@ This repo is set up to deploy as one Render web service using [render.yaml](/Use
 
 The deployed app serves both the React frontend and the API from the same domain.
 
+## Deploy on Vercel
+
+This repo is now set up for a single-project Vercel deployment:
+
+- Static frontend output comes from `frontend/dist`
+- API requests are handled by [api/[...route].js](/Users/keshav/Desktop/EnglishBuddy/api/[...route].js)
+- Frontend routes are rewritten to `index.html` for React Router
+
+Before deploying on Vercel:
+
+1. Set `OPENAI_API_KEY`
+2. Set `OPENAI_MODEL=gpt-4o-mini`
+3. Set `MONGODB_URI`
+
+`MONGODB_URI` is required on Vercel. The local JSON fallback is kept for local development,
+but Vercel Functions do not provide durable writable storage for production app data.
+
+Suggested Vercel settings:
+
+- Framework preset: `Other`
+- Root directory: project root
+- Install command: taken from [vercel.json](/Users/keshav/Desktop/EnglishBuddy/vercel.json)
+- Build command: taken from [vercel.json](/Users/keshav/Desktop/EnglishBuddy/vercel.json)
+- Output directory: `frontend/dist`
+
+After deployment, verify:
+
+- `/api/health` returns `status: "ok"`
+- `storage` is `mongodb`
+- `ai.configured` is `true`
+
 ## Voice support
 
 - Voice input uses the browser Speech Recognition API and works best in Chrome or Edge.
