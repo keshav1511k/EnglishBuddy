@@ -60,11 +60,11 @@ export default function Home({ session }) {
         </article>
 
         <article className="panel feature-panel">
-          <span className="eyebrow">Navigation</span>
-          <h2>The logo now always returns to home.</h2>
+          <span className="eyebrow">How it works</span>
+          <h2>Speak, hear the AI answer, then end the session for full feedback.</h2>
           <p>
-            Your public home page, login routes, live AI practice, and dashboard are now
-            separated cleanly.
+            Start a voice conversation, let the AI respond out loud, and finish with a
+            session review built from everything you discussed.
           </p>
         </article>
       </section>

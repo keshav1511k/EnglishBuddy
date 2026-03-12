@@ -43,6 +43,22 @@ function formatDuration(startedAt) {
   return Math.max(1, Math.round((Date.now() - startedAt) / 60000));
 }
 
+function getConversationStatus({ isListening, isReplying, isSummarizing }) {
+  if (isListening) {
+    return "Listening to you";
+  }
+
+  if (isReplying) {
+    return "AI is responding";
+  }
+
+  if (isSummarizing) {
+    return "Preparing session feedback";
+  }
+
+  return "Ready for the next turn";
+}
+
 export default function Practice({ session }) {
   const recognitionRef = useRef(null);
   const speechBufferRef = useRef("");
@@ -246,6 +262,12 @@ export default function Practice({ session }) {
       return;
     }
 
+    stopListening();
+
+    if (speechSynthesisAvailable) {
+      window.speechSynthesis.cancel();
+    }
+
     setError("");
     setNotice("");
     setIsSummarizing(true);
@@ -311,6 +333,12 @@ export default function Practice({ session }) {
     setSavedSessionId(null);
   };
 
+  const conversationStatus = getConversationStatus({
+    isListening,
+    isReplying,
+    isSummarizing,
+  });
+
   return (
     <main className="page-shell practice-shell">
       <section className="panel practice-hero">
@@ -323,6 +351,8 @@ export default function Practice({ session }) {
           </p>
         </div>
 
+        <div className="status-pill">{conversationStatus}</div>
+
         <div className="hero-actions">
           <button
             className="primary-button"
@@ -330,7 +360,7 @@ export default function Practice({ session }) {
             onClick={startListening}
             disabled={isListening || isReplying || isSummarizing}
           >
-            {isListening ? "Listening..." : "Start talking"}
+            {isListening ? "Listening..." : "Start voice conversation"}
           </button>
           <button
             className="ghost-button"
@@ -507,7 +537,9 @@ export default function Practice({ session }) {
               onClick={handleSummarize}
               disabled={!conversationHistory.length || isSummarizing}
             >
-              {isSummarizing ? "Creating summary..." : "Get session feedback"}
+              {isSummarizing
+                ? "Creating summary..."
+                : "End conversation and get feedback"}
             </button>
 
             {summary ? (
