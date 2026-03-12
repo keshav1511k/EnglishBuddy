@@ -2,4 +2,5 @@ node_modules
 .env
 .vercel
 dist
+public
 backend/data/store.json

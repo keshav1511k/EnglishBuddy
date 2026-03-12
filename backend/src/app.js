@@ -21,9 +21,29 @@ import {
 
 const fileName = fileURLToPath(import.meta.url);
 const directoryName = path.dirname(fileName);
-const frontendDistPath = path.resolve(directoryName, "../../frontend/dist");
-const frontendIndexPath = path.join(frontendDistPath, "index.html");
-const hasBuiltFrontend = existsSync(frontendIndexPath);
+
+function resolveFrontendBuild() {
+  const candidates = [
+    path.resolve(directoryName, "../../public"),
+    path.resolve(directoryName, "../../frontend/dist"),
+  ];
+
+  for (const candidate of candidates) {
+    const candidateIndexPath = path.join(candidate, "index.html");
+
+    if (existsSync(candidateIndexPath)) {
+      return {
+        staticPath: candidate,
+        indexPath: candidateIndexPath,
+      };
+    }
+  }
+
+  return null;
+}
+
+const frontendBuild = resolveFrontendBuild();
+const hasBuiltFrontend = Boolean(frontendBuild);
 
 function parseWeeklyGoal(value) {
   const parsed = Number(value);
@@ -248,7 +268,7 @@ export function createApp() {
   });
 
   if (hasBuiltFrontend) {
-    app.use(express.static(frontendDistPath));
+    app.use(express.static(frontendBuild.staticPath));
 
     app.use((request, response, next) => {
       if (request.method !== "GET" || request.path.startsWith("/api")) {
@@ -256,7 +276,7 @@ export function createApp() {
         return;
       }
 
-      response.sendFile(frontendIndexPath);
+      response.sendFile(frontendBuild.indexPath);
     });
   } else {
     app.get("/", (request, response) => {

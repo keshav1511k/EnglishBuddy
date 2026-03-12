@@ -2,16 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm run install:all",
   "buildCommand": "npm run build:frontend",
-  "outputDirectory": "frontend/dist",
   "functions": {
-    "api/**/*.js": {
+    "server.js": {
       "maxDuration": 60
     }
   },
   "rewrites": [
     {
-      "source": "/((?!api(?:/|$)).*)",
-      "destination": "/"
+      "source": "/((?!api(?:/|$)|assets(?:/|$)|vite\\.svg$).*)",
+      "destination": "/index.html"
     }
   ]
 }
