@@ -71,7 +71,7 @@ The deployed app serves both the React frontend and the API from the same domain
 This repo is now set up for a single-project Vercel deployment:
 
 - Static frontend output is built into the root `public` directory
-- The Express backend is exposed through [server.js](/Users/keshav/Desktop/EnglishBuddy/server.js)
+- API requests are handled by [api/[...route].js](/Users/keshav/Desktop/EnglishBuddy/api/[...route].js)
 - Frontend routes are rewritten to `/index.html` for React Router, while `/api/*` stays on the backend
 
 Before deploying on Vercel:

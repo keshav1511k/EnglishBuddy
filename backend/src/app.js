@@ -99,13 +99,15 @@ async function requireAuth(request, response, next) {
   }
 }
 
-export function createApp() {
+export function createApp(options = {}) {
+  const { apiPrefix = "/api", serveFrontend = true } = options;
   const app = express();
+  const api = express.Router();
 
   app.use(cors());
   app.use(express.json());
 
-  app.get("/api/health", (request, response) => {
+  api.get("/health", (request, response) => {
     response.json({
       status: "ok",
       storage: getStoreProviderName(),
@@ -116,7 +118,7 @@ export function createApp() {
     });
   });
 
-  app.post("/api/auth/register", async (request, response) => {
+  api.post("/auth/register", async (request, response) => {
     const { name, email, password, level, weeklyGoalMinutes } = request.body ?? {};
 
     if (!name?.trim() || !email?.trim() || !password?.trim() || !level?.trim()) {
@@ -147,7 +149,7 @@ export function createApp() {
     response.status(201).json(result);
   });
 
-  app.post("/api/auth/login", async (request, response) => {
+  api.post("/auth/login", async (request, response) => {
     const { email, password } = request.body ?? {};
 
     if (!email?.trim() || !password?.trim()) {
@@ -159,22 +161,22 @@ export function createApp() {
     response.json(result);
   });
 
-  app.post("/api/auth/logout", requireAuth, async (request, response) => {
+  api.post("/auth/logout", requireAuth, async (request, response) => {
     await logoutUser(request.token);
     response.status(204).send();
   });
 
-  app.get("/api/me/dashboard", requireAuth, async (request, response) => {
+  api.get("/me/dashboard", requireAuth, async (request, response) => {
     const dashboard = await getDashboardForUser(request.user.id);
     response.json(dashboard);
   });
 
-  app.get("/api/me/sessions", requireAuth, async (request, response) => {
+  api.get("/me/sessions", requireAuth, async (request, response) => {
     const sessions = await getSessionsForUser(request.user.id);
     response.json({ sessions });
   });
 
-  app.post("/api/me/sessions", requireAuth, async (request, response) => {
+  api.post("/me/sessions", requireAuth, async (request, response) => {
     const { topic, speakingMode, durationMinutes, score, notes = "" } = request.body ?? {};
 
     if (!topic?.trim() || !speakingMode?.trim()) {
@@ -208,7 +210,7 @@ export function createApp() {
     response.status(201).json({ session });
   });
 
-  app.post("/api/ai/practice-turn", requireAuth, async (request, response) => {
+  api.post("/ai/practice-turn", requireAuth, async (request, response) => {
     const {
       topic,
       focusArea = "fluency",
@@ -234,7 +236,7 @@ export function createApp() {
     response.json(aiTurn);
   });
 
-  app.post("/api/ai/practice-summary", requireAuth, async (request, response) => {
+  api.post("/ai/practice-summary", requireAuth, async (request, response) => {
     const {
       topic,
       focusArea = "fluency",
@@ -267,7 +269,13 @@ export function createApp() {
     response.json({ summary });
   });
 
-  if (hasBuiltFrontend) {
+  if (apiPrefix) {
+    app.use(apiPrefix, api);
+  } else {
+    app.use(api);
+  }
+
+  if (serveFrontend && hasBuiltFrontend) {
     app.use(express.static(frontendBuild.staticPath));
 
     app.use((request, response, next) => {
