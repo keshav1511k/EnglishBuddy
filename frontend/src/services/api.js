@@ -1,13 +1,20 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
 const SESSION_STORAGE_KEY = "englishbuddy-session";
 
-function getErrorMessage(path, payload) {
+function getErrorMessage(path, payload, responseDetails = {}) {
   if (payload?.code === "AI_NOT_CONFIGURED" && path.startsWith("/ai/")) {
     return "Live AI is not enabled on this site yet. Add the OpenAI API key in Render to turn it on.";
   }
 
   if (payload?.code === "MONGODB_REQUIRED_ON_VERCEL") {
     return "This Vercel deployment still needs MONGODB_URI. Add MongoDB in the Vercel environment settings and redeploy.";
+  }
+
+  if (
+    path.startsWith("/auth/") &&
+    responseDetails.contentType?.includes("text/html")
+  ) {
+    return "The API route returned HTML instead of JSON. Check the Vercel function deployment and make sure MONGODB_URI is set.";
   }
 
   return payload?.message || "Request failed.";
@@ -59,16 +66,24 @@ async function request(path, options = {}) {
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
+  const contentType = response.headers.get("content-type") || "";
   let payload = null;
+  let rawPayload = "";
 
   try {
-    payload = await response.json();
+    rawPayload = await response.text();
+    payload = rawPayload ? JSON.parse(rawPayload) : null;
   } catch {
     payload = null;
   }
 
   if (!response.ok) {
-    const error = new Error(getErrorMessage(path, payload));
+    const error = new Error(
+      getErrorMessage(path, payload, {
+        contentType,
+        rawPayload,
+      }),
+    );
     error.status = response.status;
     error.code = payload?.code;
     throw error;
